@@ -3,10 +3,11 @@ package bgu.spl.mics;
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
  * Write your implementation here!
- * Only private fields and methods can be added to this class.
+ * Only one public method (in addition to getters which can be public solely for unit testing) may be added to this class
+ * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
-
+	
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		// TODO Auto-generated method stub
