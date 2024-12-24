@@ -1,15 +1,25 @@
 package bgu.spl.mics.application.services;
 
+import java.util.List;
+
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.DetectObjectsEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
+
 
 /**
  * CameraService is responsible for processing data from the camera and
  * sending DetectObjectsEvents to LiDAR workers.
- * 
+ *
  * This service interacts with the Camera object to detect objects and updates
  * the system's StatisticalFolder upon sending its observations.
  */
 public class CameraService extends MicroService {
+
+    private final Camera camera;
 
     /**
      * Constructor for CameraService.
@@ -17,8 +27,8 @@ public class CameraService extends MicroService {
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("CameraService" + camera.getId());
+        this.camera = camera;
     }
 
     /**
@@ -28,6 +38,22 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
+            int currentTick = tick.getTick();
+
+            // Check if the camera should process objects at this tick
+            if (currentTick % camera.getFrequency() == 0) {
+                List<StampedDetectedObjects> objectsToProcess = camera.getDetectedObjectsList();
+                objectsToProcess.stream()
+                    .filter(obj -> obj.getTime() == currentTick)
+                    .forEach(stampedObjects -> {
+                        sendEvent(new DetectObjectsEvent(stampedObjects.getDetectedObjects()));
+                        // Additional tasks like updating statistics can be added here
+                    });
+            }
+        });
+
+        // Subscribe to any necessary termination broadcasts
+        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> terminate());
     }
 }
