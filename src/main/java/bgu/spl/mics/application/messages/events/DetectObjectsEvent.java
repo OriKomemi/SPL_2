@@ -1,9 +1,9 @@
-package bgu.spl.mics.application.messages;
+package bgu.spl.mics.application.messages.events;
 
-import bgu.spl.mics.Event;
-
-import  bgu.spl.mics.application.objects.DetectedObject;
 import java.util.List;
+
+import  bgu.spl.mics.Event;
+import bgu.spl.mics.application.objects.DetectedObject;
 
 /**
  * DetectObjectsEvent is sent by CameraService to LiDAR workers to process detected objects.

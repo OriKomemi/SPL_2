@@ -1,7 +1,7 @@
 import bgu.spl.mics.MessageBusImpl;
-import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.services.TimeService;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.MicroService;
 import org.junit.jupiter.api.Test;
 
