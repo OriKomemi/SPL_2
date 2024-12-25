@@ -1,7 +1,6 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.PoseEvent;
 import bgu.spl.mics.application.objects.GPSIMU;
@@ -38,11 +37,6 @@ public class PoseService extends MicroService {
                 System.out.println("Pose at tick " + currentTick + ": " + currentPose);
                 sendEvent(new PoseEvent(currentPose));
             }
-        });
-
-        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> {
-            System.out.println("PoseService terminating.");
-            terminate();
         });
     }
 }

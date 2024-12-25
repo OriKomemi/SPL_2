@@ -1,5 +1,9 @@
 package bgu.spl.mics.application.services;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
@@ -9,8 +13,10 @@ import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
  * at regular intervals and controlling the simulation's duration.
  */
 public class TimeService extends MicroService {
-    private final int TickTime;
-    private final int Duration;
+    private final int TickTime; // Duration of each tick in milliseconds
+    private final int Duration; // Total number of ticks before termination
+    private final ScheduledExecutorService scheduler;
+
     /**
      * Constructor for TimeService.
      *
@@ -21,28 +27,28 @@ public class TimeService extends MicroService {
         super("TimeService");
         this.TickTime = TickTime;
         this.Duration = Duration;
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
     @Override
     protected void initialize() {
-        int[] currentTick = {1};
 
-        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> {
-            terminate();
-        });
+        // Schedule periodic tick broadcasts
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            private int currentTick = 1;
 
-        new Thread(() -> {
-            try {
-                while (currentTick[0] <= Duration) {
-                    sendBroadcast(new TickBroadcast(currentTick[0]));
-                    Thread.sleep(TickTime);
-                    currentTick[0]++;
+            @Override
+            public void run() {
+                if (currentTick <= Duration) {
+                    sendBroadcast(new TickBroadcast(currentTick));
+                    currentTick++;
+                } else {
+                    // Send TerminatedBroadcast and shut down
+                    sendBroadcast(new TerminatedBroadcast());
+                    scheduler.shutdown();
+                    terminate();
                 }
-                sendBroadcast(new TerminatedBroadcast());
-                terminate();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
             }
-        }).start();
+        }, 0, TickTime, TimeUnit.MILLISECONDS);
     }
 }

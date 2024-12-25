@@ -3,12 +3,12 @@ package bgu.spl.mics.application.services;
 import java.util.List;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.broadcast.CrashedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.DetectObjectsEvent;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
-
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -38,6 +38,7 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
+        // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
             int currentTick = tick.getTick();
 
@@ -53,7 +54,16 @@ public class CameraService extends MicroService {
             }
         });
 
-        // Subscribe to any necessary termination broadcasts
-        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> terminate());
+        // Subscribe to TerminatedBroadcast
+        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> {
+            System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
+            terminate();
+        });
+
+        // Subscribe to CrashedBroadcast
+        subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
+            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
+            terminate();
+        });
     }
 }

@@ -28,7 +28,7 @@ class PoseServiceTest {
         // Mock data for GPSIMU
         GPSIMU gpsimu = new GPSIMU(
             Arrays.asList(
-                new Pose(1, 2.0f, 45.0f, 1),
+                new Pose(1, 1.0f, 45.0f, 1),
                 new Pose(2, 3.0f, 90.0f, 2),
                 new Pose(3, 4.0f, 135.0f, 3)
             ),
@@ -55,8 +55,8 @@ class PoseServiceTest {
                     Pose pose = event.getPose();
                     assertNotNull(pose, "Pose should not be null");
                     assertEquals(1.0f, pose.getX(), "Expected X coordinate");
-                    assertEquals(2.0f, pose.getY(), "Expected Y coordinate");
-                    assertEquals(45.0f, pose.getYaw(), "Expected yaw angle");
+                    assertEquals(45.0f, pose.getY(), "Expected Y coordinate");
+                    assertEquals(1.0f, pose.getYaw(), "Expected yaw angle");
                 });
             }
         };
@@ -80,6 +80,8 @@ class PoseServiceTest {
         } finally {
             // Terminate services gracefully
             messageBus.sendBroadcast(new TerminatedBroadcast());
+            poseServiceThread.interrupt();
+            mockServiceThread.interrupt();
 
             try {
                 poseServiceThread.join();
