@@ -47,7 +47,6 @@ public class LiDarDataBase {
         }
         return instance;
     }
-
     /**
      * @return The list of cloud points.
      */

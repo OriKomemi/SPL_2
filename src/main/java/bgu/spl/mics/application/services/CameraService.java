@@ -48,7 +48,7 @@ public class CameraService extends MicroService {
                 objectsToProcess.stream()
                     .filter(obj -> obj.getTime() == currentTick)
                     .forEach(stampedObjects -> {
-                        sendEvent(new DetectObjectsEvent(stampedObjects.getDetectedObjects()));
+                        sendEvent(new DetectObjectsEvent(currentTick, stampedObjects.getDetectedObjects()));
                         // Additional tasks like updating statistics can be added here
                     });
             }

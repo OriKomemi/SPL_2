@@ -7,7 +7,7 @@ import java.util.List;
  * This object includes information about the tracked object's ID, description,
  * time of tracking, and coordinates in the environment.
  */
-class TrackedObject {
+public class TrackedObject {
 
     private final String id;
     private final int time;

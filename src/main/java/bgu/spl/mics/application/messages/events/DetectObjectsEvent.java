@@ -9,7 +9,7 @@ import bgu.spl.mics.application.objects.DetectedObject;
  * DetectObjectsEvent is sent by CameraService to LiDAR workers to process detected objects.
  */
 public class DetectObjectsEvent implements Event<List<DetectedObject>> {
-
+    private final int time;
     private final List<DetectedObject> detectedObjects;
 
     /**
@@ -17,7 +17,8 @@ public class DetectObjectsEvent implements Event<List<DetectedObject>> {
      *
      * @param detectedObjects The list of detected objects to be processed.
      */
-    public DetectObjectsEvent(List<DetectedObject> detectedObjects) {
+    public DetectObjectsEvent(int time, List<DetectedObject> detectedObjects) {
+        this.time = time;
         this.detectedObjects = detectedObjects;
     }
 
@@ -26,5 +27,9 @@ public class DetectObjectsEvent implements Event<List<DetectedObject>> {
      */
     public List<DetectedObject> getDetectedObjects() {
         return detectedObjects;
+    }
+
+    public int getTime() {
+        return time;
     }
 }

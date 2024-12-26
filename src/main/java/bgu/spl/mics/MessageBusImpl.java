@@ -17,18 +17,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class MessageBusImpl implements MessageBus {
 
-    private static volatile MessageBusImpl instance;
+    private static class MessageBusHolder{
+		private static volatile MessageBusImpl instance = new MessageBusImpl();;
+	}
 
     public static MessageBusImpl getInstance() {
-        if (instance == null) {
-            synchronized (MessageBusImpl.class) {
-                if (instance == null) {
-                    instance = new MessageBusImpl();
-                }
-            }
-        }
-        return instance;
-    }
+		return MessageBusHolder.instance;
+	}
 
     private final ConcurrentHashMap<MicroService, BlockingQueue<Message>> queues;
     private final ConcurrentHashMap<Class<? extends Message>, CopyOnWriteArrayList<MicroService>> subscriptionsEvents;

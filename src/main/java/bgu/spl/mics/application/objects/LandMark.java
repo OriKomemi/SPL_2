@@ -6,7 +6,7 @@ import java.util.List;
  * Represents a landmark in the environment map.
  * Landmarks are identified and updated by the FusionSlam service.
  */
-class Landmark {
+public class Landmark {
 
     private final String id;
     private final String description;
