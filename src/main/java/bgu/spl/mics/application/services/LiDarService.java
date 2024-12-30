@@ -37,7 +37,7 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker liDarWorkerTracker) {
         super("LiDarService" + liDarWorkerTracker.getId());
         this.liDarWorkerTracker = liDarWorkerTracker;
-        this.liDARDataBase = LiDarDataBase.getInstance("example input/lidar_data.json");
+        this.liDARDataBase = LiDarDataBase.getInstance(liDarWorkerTracker.getLidarDataPath());
     }
 
     /**
@@ -48,6 +48,7 @@ public class LiDarService extends MicroService {
     @Override
     protected void initialize() {
         // Subscribe to TickBroadcast
+        //  TODO: add status handle.
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
             int currentTick = tick.getTick();
 

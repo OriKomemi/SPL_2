@@ -13,6 +13,7 @@ public class LiDarWorkerTracker {
     private final int id;
     private final int frequency;
     private STATUS status;
+    private String lidarDataPath;
     private List<TrackedObject> trackedObjects;
     private List<TrackedObject> lastTrackedObjects;
 
@@ -24,10 +25,11 @@ public class LiDarWorkerTracker {
      * @param status             The status of the LiDAR tracker.
      * @param lastTrackedObjects The last objects tracked by the LiDAR.
      */
-    public LiDarWorkerTracker(int id, int frequency, STATUS status) {
+    public LiDarWorkerTracker(int id, int frequency, String lidarDataPath) {
         this.id = id;
         this.frequency = frequency;
-        this.status = status;
+        this.lidarDataPath = lidarDataPath;
+        this.status = STATUS.UP;
         this.lastTrackedObjects = new ArrayList<>();
         this.trackedObjects = new ArrayList<>();
     }
@@ -63,4 +65,9 @@ public class LiDarWorkerTracker {
     public void setTrackedObjects(List<TrackedObject> val) {
         this.trackedObjects = val;
     }
+
+    public String getLidarDataPath() {
+        return lidarDataPath;
+    }
+
 }

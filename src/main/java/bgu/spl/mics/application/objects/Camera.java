@@ -20,10 +20,10 @@ public class Camera {
      * @param status              The current status of the camera.
      * @param detectedObjectsList The list of detected objects with timestamps.
      */
-    public Camera(int id, int frequency, STATUS status, List<StampedDetectedObjects> detectedObjectsList) {
+    public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
         this.frequency = frequency;
-        this.status = status;
+        this.status = STATUS.UP;
         this.detectedObjectsList = detectedObjectsList;
     }
 

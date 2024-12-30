@@ -17,9 +17,9 @@ public class GPSIMU {
      * @param poseList The list of time-stamped poses.
      * @param status   The initial status of the GPSIMU.
      */
-    public GPSIMU(List<Pose> poseList, STATUS status) {
+    public GPSIMU(List<Pose> poseList) {
         this.poseList = poseList;
-        this.status = status;
+        this.status = STATUS.UP;
         this.currentTick = 0;
     }
 
@@ -58,5 +58,9 @@ public class GPSIMU {
      */
     public void setStatus(STATUS status) {
         this.status = status;
+    }
+
+    public List<Pose> getPoseList() {
+        return poseList;
     }
 }

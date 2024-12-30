@@ -15,7 +15,6 @@ import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.PoseEvent;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
-import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.services.PoseService;
 
 class PoseServiceTest {
@@ -31,8 +30,7 @@ class PoseServiceTest {
                 new Pose(1, 1.0f, 45.0f, 1),
                 new Pose(2, 3.0f, 90.0f, 2),
                 new Pose(3, 4.0f, 135.0f, 3)
-            ),
-            STATUS.UP
+            )
         );
 
         // Initialize PoseService
