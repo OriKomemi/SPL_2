@@ -1,7 +1,7 @@
 package bgu.spl.mics.application.services;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.broadcast.CrashedBroadcast;
@@ -9,7 +9,6 @@ import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.events.TrackedObjectsEvent;
-import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
@@ -35,10 +34,10 @@ public class LiDarService extends MicroService {
      * @param liDarWorkerTracker A LiDAR Worker Tracker object that this service will use to manage tracking.
      * @param liDARDataBase      A LiDAR DataBase object that this service will use to retrieve cloud points.
      */
-    public LiDarService(LiDarWorkerTracker liDarWorkerTracker, LiDarDataBase liDARDataBase) {
+    public LiDarService(LiDarWorkerTracker liDarWorkerTracker) {
         super("LiDarService" + liDarWorkerTracker.getId());
         this.liDarWorkerTracker = liDarWorkerTracker;
-        this.liDARDataBase = liDARDataBase;
+        this.liDARDataBase = LiDarDataBase.getInstance("example input/lidar_data.json");
     }
 
     /**
@@ -50,37 +49,32 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
-            System.out.println(getName() + " received TickBroadcast: " + tick.getTick());
+            int currentTick = tick.getTick();
+
+            List<TrackedObject> objectsToProcess = liDarWorkerTracker.getTrackedObjects();
+            List<TrackedObject> matchTrackedObjects =  objectsToProcess.stream().filter(
+                obj -> obj.getTime() == (currentTick - liDarWorkerTracker.getFrequency())
+                ).collect(Collectors.toList());
+            if (!matchTrackedObjects.isEmpty()) {
+                sendEvent(new TrackedObjectsEvent(matchTrackedObjects));
+                liDarWorkerTracker.setLastTrackedObjects(matchTrackedObjects);
+            }
         });
 
         // Subscribe to DetectObjectsEvent
         subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent event) -> {
-            List<TrackedObject> trackedObjects = new ArrayList<>();
-
+            List<StampedCloudPoints> cloudPoints = liDARDataBase.getCloudPoints();
+            List<TrackedObject> trackedObjects = liDarWorkerTracker.getTrackedObjects();
             // Process detected objects to generate tracked objects
             for (DetectedObject obj : event.getDetectedObjects()) {
-                List<StampedCloudPoints> cloudPoints = liDARDataBase.getCloudPoints();
                 cloudPoints.stream()
                     .filter(cloudPoint -> cloudPoint.getId().equals(obj.getId()) && cloudPoint.getTime() == event.getTime())
                     .forEach((stampedCloudPoints) -> {
-                        // Transform nested arrays into CloudPoint objects
-                        List<CloudPoint> transformedData = new ArrayList<>();
-                        for (List<Double> point : stampedCloudPoints.getCloudPoints()) {
-                            transformedData.add(new CloudPoint(point.get(0), point.get(1), point.get(2)));
-                        }
                         trackedObjects.add(
-                            new TrackedObject(obj.getId(), stampedCloudPoints.getTime(), obj.getDescription(), transformedData)
+                            new TrackedObject(obj.getId(), stampedCloudPoints.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
                         );
+                        liDarWorkerTracker.setTrackedObjects(trackedObjects);
                     });
-            }
-
-            // Send TrackedObjectsEvent
-            if (!trackedObjects.isEmpty()) {
-                liDarWorkerTracker.getLastTrackedObjects().addAll(trackedObjects);
-                sendEvent(new TrackedObjectsEvent(trackedObjects));
-                System.out.println(getName() + " sent TrackedObjectsEvent with " + trackedObjects.size() + " objects.");
-            } else {
-                System.out.println(getName() + " did not find any matching objects.");
             }
         });
 

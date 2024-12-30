@@ -42,16 +42,13 @@ public class CameraService extends MicroService {
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
             int currentTick = tick.getTick();
 
-            // Check if the camera should process objects at this tick
-            if (currentTick % camera.getFrequency() == 0) {
-                List<StampedDetectedObjects> objectsToProcess = camera.getDetectedObjectsList();
-                objectsToProcess.stream()
-                    .filter(obj -> obj.getTime() == currentTick)
-                    .forEach(stampedObjects -> {
-                        sendEvent(new DetectObjectsEvent(currentTick, stampedObjects.getDetectedObjects()));
-                        // Additional tasks like updating statistics can be added here
-                    });
-            }
+            List<StampedDetectedObjects> objectsToProcess = camera.getDetectedObjectsList();
+            objectsToProcess.stream()
+                .filter(obj -> obj.getTime() == (currentTick - camera.getFrequency()))
+                .forEach(stampedObject -> {
+                    sendEvent(new DetectObjectsEvent(stampedObject.getTime(), stampedObject.getDetectedObjects()));
+                });
+
         });
 
         // Subscribe to TerminatedBroadcast

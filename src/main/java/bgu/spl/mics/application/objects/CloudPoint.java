@@ -8,7 +8,6 @@ public class CloudPoint {
 
     private final double x;
     private final double y;
-    private final double z;
 
 
     /**
@@ -16,13 +15,11 @@ public class CloudPoint {
      *
      * @param x The x-coordinate of the point.
      * @param y The y-coordinate of the point.
-     * @param z The z-coordinate of the point.
      **/
 
-    public CloudPoint(double x, double y, double z) {
+    public CloudPoint(double x, double y) {
         this.x = x;
         this.y = y;
-        this.z = z;
     }
 
     public double getX() {
@@ -33,7 +30,4 @@ public class CloudPoint {
         return y;
     }
 
-    public double getZ() {
-        return z;
-    }
 }

@@ -31,7 +31,6 @@ class LiDarServiceTest {
     @BeforeEach
     void setUp() {
         latch = new CountDownLatch(2); // Wait for both services to initialize
-        LiDarDataBase liDARDataBase = LiDarDataBase.getInstance("example input/lidar_data.json");
         System.out.println(liDARDataBase.getCloudPoints().get(0).getCloudPoints());
         liDarService = new LiDarService(liDARDataBase) {
             @Override

@@ -10,7 +10,7 @@ public class Landmark {
 
     private final String id;
     private final String description;
-    private final List<CloudPoint> coordinates;
+    private List<CloudPoint> coordinates;
 
     /**
      * Constructor for Landmark.
@@ -35,5 +35,9 @@ public class Landmark {
 
     public List<CloudPoint> getCoordinates() {
         return coordinates;
+    }
+
+    public void setCoordinates(List<CloudPoint> coordinates) {
+        this.coordinates = coordinates;
     }
 }

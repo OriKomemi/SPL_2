@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,7 +13,8 @@ public class LiDarWorkerTracker {
     private final int id;
     private final int frequency;
     private STATUS status;
-    private final List<TrackedObject> lastTrackedObjects;
+    private List<TrackedObject> trackedObjects;
+    private List<TrackedObject> lastTrackedObjects;
 
     /**
      * Constructor for LiDarWorkerTracker.
@@ -22,11 +24,12 @@ public class LiDarWorkerTracker {
      * @param status             The status of the LiDAR tracker.
      * @param lastTrackedObjects The last objects tracked by the LiDAR.
      */
-    public LiDarWorkerTracker(int id, int frequency, STATUS status, List<TrackedObject> lastTrackedObjects) {
+    public LiDarWorkerTracker(int id, int frequency, STATUS status) {
         this.id = id;
         this.frequency = frequency;
         this.status = status;
-        this.lastTrackedObjects = lastTrackedObjects;
+        this.lastTrackedObjects = new ArrayList<>();
+        this.trackedObjects = new ArrayList<>();
     }
 
     public int getId() {
@@ -47,5 +50,17 @@ public class LiDarWorkerTracker {
 
     public List<TrackedObject> getLastTrackedObjects() {
         return lastTrackedObjects;
+    }
+
+    public List<TrackedObject> getTrackedObjects() {
+        return trackedObjects;
+    }
+
+    public void setLastTrackedObjects(List<TrackedObject> val) {
+        this.lastTrackedObjects = val;
+    }
+
+    public void setTrackedObjects(List<TrackedObject> val) {
+        this.trackedObjects = val;
     }
 }
