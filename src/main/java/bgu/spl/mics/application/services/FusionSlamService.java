@@ -10,9 +10,7 @@ import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.PoseEvent;
 import bgu.spl.mics.application.messages.events.TrackedObjectsEvent;
-import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.FusionSlam;
-import bgu.spl.mics.application.objects.Landmark;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.TrackedObject;
 
@@ -63,11 +61,10 @@ public class FusionSlamService extends MicroService {
             List<TrackedObject> trackedObjects = event.getTrackedObjects();
             for (TrackedObject obj : trackedObjects) {
                 if (obj.getTime() == currentPose.getTime()){
-                    createLandmark(obj, currentPose);
+                    fusionSlam.createLandmark(obj, currentPose);
                 } else {
                     unhandledTrackedObjects.add(obj);
                 }
-
             }
         });
 
@@ -77,7 +74,7 @@ public class FusionSlamService extends MicroService {
                 TrackedObject obj = unhandledTrackedObjects.get(i);
                 List<Pose> poses = fusionSlam.getPoses().stream().filter(p -> obj.getTime() == p.getTime()).collect(Collectors.toList());
                 if (!poses.isEmpty()) {
-                    createLandmark(obj, poses.get(0)); //assuming only one pose per tick
+                    fusionSlam.createLandmark(obj, poses.get(0)); //assuming only one pose per tick
                     unhandledTrackedObjects.remove(i);
                 }
             }
@@ -94,31 +91,5 @@ public class FusionSlamService extends MicroService {
             System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
             terminate();
         });
-    }
-
-    private List<CloudPoint> transformToGlobalCoordinates(TrackedObject obj, Pose pose) {
-        double cosTheta = Math.cos(Math.toRadians(pose.getYaw()));
-        double sinTheta = Math.sin(Math.toRadians(pose.getYaw()));
-
-        return obj.getCoordinates().stream().map(local -> new CloudPoint(
-            cosTheta * local.getX() - sinTheta * local.getY() + pose.getX(),
-            sinTheta * local.getX() + cosTheta * local.getY() + pose.getY()
-        )).collect(Collectors.toList());
-    }
-
-    private void createLandmark(TrackedObject obj, Pose pose) {
-        Landmark existingLandmark = fusionSlam.findLandmarkById(obj.getId());
-        if (existingLandmark == null) {
-            // Transform object coordinates to global frame and add as a new landmark
-            Landmark newLandmark = new Landmark(
-                obj.getId(),
-                obj.getDescription(),
-                transformToGlobalCoordinates(obj, pose)
-            );
-            fusionSlam.addLandmark(newLandmark);
-        } else {
-            // Update existing landmark with averaged coordinates
-            fusionSlam.updateLandmark(existingLandmark, transformToGlobalCoordinates(obj, pose));
-        }
     }
 }

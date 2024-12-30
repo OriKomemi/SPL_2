@@ -3,6 +3,7 @@ package bgu.spl.mics.application.objects;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
@@ -39,6 +40,31 @@ public class FusionSlam {
         landmarks.add(landmark);
     }
 
+    public List<CloudPoint> transformToGlobalCoordinates(TrackedObject obj, Pose pose) {
+        double cosTheta = Math.cos(Math.toRadians(pose.getYaw()));
+        double sinTheta = Math.sin(Math.toRadians(pose.getYaw()));
+
+        return obj.getCoordinates().stream().map(local -> new CloudPoint(
+            cosTheta * local.getX() - sinTheta * local.getY() + pose.getX(),
+            sinTheta * local.getX() + cosTheta * local.getY() + pose.getY()
+        )).collect(Collectors.toList());
+    }
+
+    public void createLandmark(TrackedObject obj, Pose pose) {
+        Landmark existingLandmark = findLandmarkById(obj.getId());
+        if (existingLandmark == null) {
+            // Transform object coordinates to global frame and add as a new landmark
+            Landmark newLandmark = new Landmark(
+                obj.getId(),
+                obj.getDescription(),
+                transformToGlobalCoordinates(obj, pose)
+            );
+            addLandmark(newLandmark);
+        } else {
+            // Update existing landmark with averaged coordinates
+            updateLandmark(existingLandmark, transformToGlobalCoordinates(obj, pose));
+        }
+    }
     /**
      * Updates an existing landmark's coordinates by averaging them with new data.
      *
@@ -98,6 +124,10 @@ public class FusionSlam {
      * @return A list of all poses.
      */
     public synchronized List<Pose> getPoses() {
+        return new ArrayList<>(poses);
+    }
+
+    public synchronized List<Pose> getPosesByTime(int time) {
         return new ArrayList<>(poses);
     }
 }
