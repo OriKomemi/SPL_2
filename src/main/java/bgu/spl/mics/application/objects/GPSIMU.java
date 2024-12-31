@@ -10,6 +10,8 @@ public class GPSIMU {
     private int currentTick;
     private STATUS status;
     private final List<Pose> poseList;
+    private int lastTick = 0;
+
 
     /**
      * Constructor for GPSIMU.
@@ -21,6 +23,11 @@ public class GPSIMU {
         this.poseList = poseList;
         this.status = STATUS.UP;
         this.currentTick = 0;
+        for (Pose pose : poseList) {
+            if (pose.getTime()>lastTick) {
+                this.lastTick = pose.getTime();
+            }
+        }
     }
 
     /**
@@ -62,5 +69,8 @@ public class GPSIMU {
 
     public List<Pose> getPoseList() {
         return poseList;
+    }
+    public int getLastTick() {
+        return lastTick;
     }
 }

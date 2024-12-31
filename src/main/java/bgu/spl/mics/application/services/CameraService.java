@@ -8,6 +8,7 @@ import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.DetectObjectsEvent;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 /**
@@ -39,24 +40,30 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         // Subscribe to TickBroadcast
+
+    //  TODO: add status handle.
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
             int currentTick = tick.getTick();
-
-            List<StampedDetectedObjects> objectsToProcess = camera.getDetectedObjectsList();
-            objectsToProcess.stream()
-                .filter(obj -> obj.getTime() == (currentTick - camera.getFrequency()))
-                .forEach(stampedObject -> {
-                    sendEvent(new DetectObjectsEvent(stampedObject.getTime(), stampedObject.getDetectedObjects()));
-                });
+            List<StampedDetectedObjects> objs = camera.getStampedDetectedObjects(currentTick);
+            for (StampedDetectedObjects stampedObject : objs) {
+                System.out.println("DetectObjectsEvent out");
+                sendEvent(new DetectObjectsEvent(stampedObject.getTime(), stampedObject.getDetectedObjects()));
+            }
+            if (currentTick - camera.getFrequency() > camera.getLastTick()) {
+                camera.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(true));
+                terminate();
+            }
 
         });
 
         // Subscribe to TerminatedBroadcast
-        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> {
-            System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
-            terminate();
+        subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
+            if (!terminated.getIsSensor()) {
+                System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
+                terminate();
+            }
         });
-
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
             System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());

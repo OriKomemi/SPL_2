@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 
 /**
  * TimeService acts as the global timer for the system, broadcasting TickBroadcast messages
@@ -32,7 +33,7 @@ public class TimeService extends MicroService {
 
     @Override
     protected void initialize() {
-
+        StatisticalFolder stats = StatisticalFolder.getInstance();
         // Schedule periodic tick broadcasts
         scheduler.scheduleAtFixedRate(new Runnable() {
             private int currentTick = 1;
@@ -41,14 +42,22 @@ public class TimeService extends MicroService {
             public void run() {
                 if (currentTick <= Duration) {
                     sendBroadcast(new TickBroadcast(currentTick));
+                    stats.incrementRuntime();
                     currentTick++;
                 } else {
                     // Send TerminatedBroadcast and shut down
-                    sendBroadcast(new TerminatedBroadcast());
+                    sendBroadcast(new TerminatedBroadcast(false));
                     scheduler.shutdown();
                     terminate();
                 }
             }
         }, 0, TickTime, TimeUnit.MILLISECONDS);
+
+        subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
+            if (!terminated.getIsSensor()) {
+                System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
+                terminate();
+            }
+        });
     }
 }

@@ -7,6 +7,7 @@ import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.PoseEvent;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.STATUS;
 
 /**
  * PoseService sends PoseEvents based on the current robot pose provided by the GPSIMU.
@@ -36,14 +37,20 @@ public class PoseService extends MicroService {
             gpsimu.setCurrentTick(currentTick);
             Pose currentPose = gpsimu.getCurrentPose();
             if (currentPose != null) {
-                System.out.println("Pose at tick " + currentTick + ": " + currentPose);
                 sendEvent(new PoseEvent(currentPose));
+            }
+            if (gpsimu.getLastTick() < currentTick) {
+                gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(true));
+                terminate();
             }
         });
 
-        subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> {
-            System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
-            terminate();
+        subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
+            if (!terminated.getIsSensor()) {
+                System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
+                terminate();
+            }
         });
 
         // Subscribe to CrashedBroadcast

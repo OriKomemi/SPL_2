@@ -2,70 +2,63 @@ package bgu.spl.mics.application.objects;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Holds statistical information about the system's operation.
- * This class aggregates metrics such as the runtime of the system,
- * the number of objects detected and tracked, and the number of landmarks identified.
- */
-class StatisticalFolder {
+public class StatisticalFolder {
+    private static StatisticalFolder instance;
 
-    private final AtomicInteger systemRuntime = new AtomicInteger(0);
-    private final AtomicInteger numDetectedObjects = new AtomicInteger(0);
-    private final AtomicInteger numTrackedObjects = new AtomicInteger(0);
-    private final AtomicInteger numLandmarks = new AtomicInteger(0);
+    private final AtomicInteger systemRuntime; // Total runtime in ticks
+    private final AtomicInteger numDetectedObjects; // Total objects detected by cameras
+    private final AtomicInteger numTrackedObjects; // Total objects tracked by LiDAR workers
+    private final AtomicInteger numLandmarks; // Unique landmarks mapped
 
-    /**
-     * Updates the runtime of the system.
-     */
+    // Private constructor to prevent direct instantiation
+    private StatisticalFolder() {
+        this.systemRuntime = new AtomicInteger(0);
+        this.numDetectedObjects = new AtomicInteger(0);
+        this.numTrackedObjects = new AtomicInteger(0);
+        this.numLandmarks = new AtomicInteger(0);
+    }
+
+    // Static method to provide access to the singleton instance
+    public static synchronized StatisticalFolder getInstance() {
+        if (instance == null) {
+            instance = new StatisticalFolder();
+        }
+        return instance;
+    }
+
+    // Increment system runtime
     public void incrementRuntime() {
         systemRuntime.incrementAndGet();
     }
 
-    /**
-     * @return The total runtime of the system.
-     */
+    // Add to detected objects count
+    public void addDetectedObjects(int count) {
+        numDetectedObjects.addAndGet(count);
+    }
+
+    // Add to tracked objects count
+    public void addTrackedObjects(int count) {
+        numTrackedObjects.addAndGet(count);
+    }
+
+    // Add to landmarks count
+    public synchronized void addLandmark() {
+        numLandmarks.incrementAndGet();
+    }
+
+    // Getters
     public int getSystemRuntime() {
         return systemRuntime.get();
     }
 
-    /**
-     * Increments the count of detected objects.
-     */
-    public void incrementDetectedObjects() {
-        numDetectedObjects.incrementAndGet();
-    }
-
-    /**
-     * @return The cumulative count of detected objects.
-     */
     public int getNumDetectedObjects() {
         return numDetectedObjects.get();
     }
 
-    /**
-     * Increments the count of tracked objects.
-     */
-    public void incrementTrackedObjects() {
-        numTrackedObjects.incrementAndGet();
-    }
-
-    /**
-     * @return The cumulative count of tracked objects.
-     */
     public int getNumTrackedObjects() {
         return numTrackedObjects.get();
     }
 
-    /**
-     * Increments the count of landmarks.
-     */
-    public void incrementLandmarks() {
-        numLandmarks.incrementAndGet();
-    }
-
-    /**
-     * @return The total number of landmarks.
-     */
     public int getNumLandmarks() {
         return numLandmarks.get();
     }

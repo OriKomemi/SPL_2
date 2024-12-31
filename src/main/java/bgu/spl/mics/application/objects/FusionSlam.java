@@ -14,7 +14,13 @@ public class FusionSlam {
 
     // Singleton instance holder
     private static class FusionSlamHolder {
-        private static final FusionSlam INSTANCE = new FusionSlam();
+        private static FusionSlam INSTANCE;
+
+        private static void initialize(int numOfSensors) {
+            if (INSTANCE == null) {
+                INSTANCE = new FusionSlam(numOfSensors);
+            }
+        }
     }
 
     // Access method for the singleton instance
@@ -22,13 +28,24 @@ public class FusionSlam {
         return FusionSlamHolder.INSTANCE;
     }
 
+    // Public method to initialize the singleton instance
+    public static void initialize(int numOfSensors) {
+        FusionSlamHolder.initialize(numOfSensors);
+    }
+
     private final List<Landmark> landmarks;
     private final List<Pose> poses;
+    private int numOfSensors;
+    private int terminatedSensorsCounter;
+    private final StatisticalFolder stats = StatisticalFolder.getInstance();
+
 
     // Private constructor to prevent instantiation
-    private FusionSlam() {
+    private FusionSlam(int numOfSensors) {
         this.landmarks = new ArrayList<>();
         this.poses = new ArrayList<>();
+        this.numOfSensors = numOfSensors;
+        this.terminatedSensorsCounter = 0;
     }
 
     /**
@@ -37,7 +54,9 @@ public class FusionSlam {
      * @param landmark The landmark to add.
      */
     public synchronized void addLandmark(Landmark landmark) {
+        System.out.println(landmark.getId());
         landmarks.add(landmark);
+        stats.addLandmark();
     }
 
     public List<CloudPoint> transformToGlobalCoordinates(TrackedObject obj, Pose pose) {
@@ -72,16 +91,23 @@ public class FusionSlam {
      * @param newCoordinates The new coordinates to incorporate.
      */
     public synchronized void updateLandmark(Landmark landmark, List<CloudPoint> newCoordinates) {
-        List<CloudPoint> updatedCoordinates = new ArrayList<>();
-
         List<CloudPoint> existingCoordinates = landmark.getCoordinates();
-        for (int i = 0; i < existingCoordinates.size(); i++) {
+        List<CloudPoint> updatedCoordinates = new ArrayList<>();
+        int minSize = Math.min(existingCoordinates.size(), newCoordinates.size());
+
+        for (int i = 0; i < minSize; i++) {
             CloudPoint existing = existingCoordinates.get(i);
             CloudPoint newCoord = newCoordinates.get(i);
             updatedCoordinates.add(new CloudPoint(
                 (existing.getX() + newCoord.getX()) / 2,
                 (existing.getY() + newCoord.getY()) / 2
             ));
+        }
+
+        if (existingCoordinates.size() > minSize) {
+            updatedCoordinates.addAll(existingCoordinates.subList(minSize, existingCoordinates.size()));
+        } else if (newCoordinates.size() > minSize) {
+            updatedCoordinates.addAll(newCoordinates.subList(minSize, newCoordinates.size()));
         }
 
         landmark.setCoordinates(updatedCoordinates);
@@ -130,4 +156,21 @@ public class FusionSlam {
     public synchronized List<Pose> getPosesByTime(int time) {
         return new ArrayList<>(poses);
     }
+
+    public int getNumOfSensors() {
+        return numOfSensors;
+    }
+
+    public void setNumOfSensors(int numOfSensors) {
+        this.numOfSensors = numOfSensors;
+    }
+
+    public int getTerminatedSensorsCounter() {
+        return terminatedSensorsCounter;
+    }
+
+    public void increaseTerminatedSensorsCounter() {
+        this.terminatedSensorsCounter += 1;
+    }
+
 }

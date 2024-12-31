@@ -2,6 +2,9 @@ package bgu.spl.mics.application.objects;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import bgu.spl.mics.application.messages.events.DetectObjectsEvent;
 
 /**
  * LiDarWorkerTracker is responsible for managing a LiDAR worker.
@@ -13,9 +16,10 @@ public class LiDarWorkerTracker {
     private final int id;
     private final int frequency;
     private STATUS status;
-    private String lidarDataPath;
+    private final String lidarDataPath;
     private List<TrackedObject> trackedObjects;
     private List<TrackedObject> lastTrackedObjects;
+    private final StatisticalFolder stats = StatisticalFolder.getInstance();
 
     /**
      * Constructor for LiDarWorkerTracker.
@@ -68,6 +72,32 @@ public class LiDarWorkerTracker {
 
     public String getLidarDataPath() {
         return lidarDataPath;
+    }
+    public void createTrackedObjects(List<StampedCloudPoints> cloudPoints, DetectObjectsEvent event) {
+        for (DetectedObject obj : event.getDetectedObjects()) {
+            System.out.println(obj.getId());
+            cloudPoints.stream()
+                .filter(cloudPoint -> cloudPoint.getId().equals(obj.getId()) && cloudPoint.getTime() == event.getTime())
+                .forEach((stampedCloudPoints) -> {
+                    trackedObjects.add(
+                        new TrackedObject(obj.getId(), stampedCloudPoints.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
+                    );
+                    this.setTrackedObjects(trackedObjects);
+                });
+        }
+    }
+
+    public List<TrackedObject> matchTrackedObjects(int currentTick) {
+        List<TrackedObject> matchTrackedObjects =  trackedObjects.stream().filter(
+            obj -> obj.getTime() == (currentTick - frequency)
+            ).collect(Collectors.toList());
+        if (!matchTrackedObjects.isEmpty()) {
+            lastTrackedObjects = matchTrackedObjects;
+            stats.addTrackedObjects(matchTrackedObjects.size());
+            return matchTrackedObjects;
+        } else {
+            return new ArrayList<>();
+        }
     }
 
 }

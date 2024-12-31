@@ -13,6 +13,7 @@ import bgu.spl.mics.application.messages.events.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.TrackedObject;
+import bgu.spl.mics.application.parser.JsonExporter;
 
 /**
  * FusionSlamService integrates data from multiple sensors to build and update
@@ -23,7 +24,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
  */
 public class FusionSlamService extends MicroService {
 
-    private final FusionSlam fusionSlam;
+    private final FusionSlam fusionSlam = FusionSlam.getInstance();
     private Pose currentPose;
     private final List<TrackedObject> unhandledTrackedObjects;
 
@@ -32,9 +33,8 @@ public class FusionSlamService extends MicroService {
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
-    public FusionSlamService(FusionSlam fusionSlam) {
+    public FusionSlamService() {
         super("FusionSlamService");
-        this.fusionSlam = fusionSlam;
         this.unhandledTrackedObjects = new ArrayList<>();
     }
 
@@ -48,11 +48,13 @@ public class FusionSlamService extends MicroService {
         // Subscribe to PoseEvent
         subscribeEvent(PoseEvent.class, (PoseEvent event) -> {
             currentPose = event.getPose();
+            System.out.println("currentPose: " + currentPose);
             fusionSlam.addPose(currentPose);
         });
 
         // Subscribe to TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, (TrackedObjectsEvent event) -> {
+
             if (currentPose == null) {
                 System.out.println(getName() + " - Cannot process tracked objects without a valid pose.");
                 return;
@@ -82,8 +84,18 @@ public class FusionSlamService extends MicroService {
 
         // Subscribe to TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
-            System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
-            terminate();
+            if (terminated.getIsSensor()) {
+                fusionSlam.increaseTerminatedSensorsCounter();
+                if (fusionSlam.getNumOfSensors() == fusionSlam.getTerminatedSensorsCounter()) {
+                    JsonExporter.exportStatistics(fusionSlam.getLandmarks());
+                    sendBroadcast(new TerminatedBroadcast(false));
+                    terminate();
+                }
+            } else {
+                System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
+                JsonExporter.exportStatistics(fusionSlam.getLandmarks());
+                terminate();
+            }
         });
 
         // Subscribe to CrashedBroadcast

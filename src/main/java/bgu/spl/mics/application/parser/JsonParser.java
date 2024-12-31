@@ -33,6 +33,31 @@ public class JsonParser{
         }
     }
 
+    // Static inner class for holding the singleton instance
+    private static class Holder {
+        private static JsonParser instance;
+
+        // Initialize the instance with the configuration path
+        private static void initialize(String configPath) {
+            if (instance == null) {
+                instance = new JsonParser(configPath);
+            }
+        }
+    }
+
+    // Public method to initialize the singleton instance
+    public static void initialize(String configPath) {
+        Holder.initialize(configPath);
+    }
+
+    // Public method to get the singleton instance
+    public static JsonParser getInstance() {
+        if (Holder.instance == null) {
+            throw new IllegalStateException("JsonParser is not initialized. Call initialize() first.");
+        }
+        return Holder.instance;
+    }
+
     public Configurations getConfig() {
         return config;
     }
@@ -80,4 +105,7 @@ public class JsonParser{
         return new GPSIMU(poses);
     }
 
+    public String getDir() {
+        return dir;
+    }
 }

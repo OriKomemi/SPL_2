@@ -17,6 +17,7 @@ public class LiDarDataBase {
 
     private static LiDarDataBase instance;
     private final List<StampedCloudPoints> cloudPoints;
+    private int lastTick = 0;
 
     /**
      * Private constructor for singleton pattern.
@@ -25,6 +26,11 @@ public class LiDarDataBase {
      */
     private LiDarDataBase(List<StampedCloudPoints> cloudPoints) {
         this.cloudPoints = cloudPoints;
+        for (StampedCloudPoints point: cloudPoints) {
+            if (point.getTime() > lastTick) {
+                this.lastTick = point.getTime();
+            }
+        }
     }
 
     /**
@@ -61,5 +67,9 @@ public class LiDarDataBase {
      */
     public List<StampedCloudPoints> getCloudPoints() {
         return new ArrayList<>(cloudPoints);
+    }
+
+    public int getLastTick() {
+        return lastTick;
     }
 }

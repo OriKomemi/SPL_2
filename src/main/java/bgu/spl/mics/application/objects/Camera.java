@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,6 +12,10 @@ public class Camera {
     private final int frequency;
     private STATUS status;
     private final List<StampedDetectedObjects> detectedObjectsList;
+    private int lastTick = 0;
+    private final StatisticalFolder stats = StatisticalFolder.getInstance();
+
+
 
     /**
      * Constructor for the Camera class.
@@ -25,6 +30,11 @@ public class Camera {
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.detectedObjectsList = detectedObjectsList;
+        for (StampedDetectedObjects stampedObj : detectedObjectsList) {
+            if (stampedObj.getTime() > lastTick) {
+                lastTick = stampedObj.getTime();
+            }
+        }
     }
 
     /**
@@ -57,10 +67,25 @@ public class Camera {
         this.status = status;
     }
 
+    public int getLastTick() {
+        return lastTick;
+    }
+
     /**
      * @return The list of detected objects with timestamps.
      */
     public List<StampedDetectedObjects> getDetectedObjectsList() {
         return detectedObjectsList;
+    }
+
+    public List<StampedDetectedObjects> getStampedDetectedObjects(int currentTick) {
+        List<StampedDetectedObjects> objs = new ArrayList<>();
+        detectedObjectsList.stream()
+            .filter(obj -> obj.getTime() == (currentTick - frequency))
+            .forEach(stampedObject -> {
+                objs.add(stampedObject);
+                stats.addDetectedObjects(stampedObject.getDetectedObjects().size());
+            });
+        return objs;
     }
 }
