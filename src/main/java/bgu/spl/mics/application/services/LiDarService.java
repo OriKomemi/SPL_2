@@ -64,8 +64,12 @@ public class LiDarService extends MicroService {
 
         // Subscribe to DetectObjectsEvent
         subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent event) -> {
-            System.out.println(getName() + " received DetectObjectsEvent.");
-            liDarWorkerTracker.createTrackedObjects(liDARDataBase.getCloudPoints(), event);
+            List<TrackedObject> newTrackedObjects = liDarWorkerTracker.createTrackedObjects(liDARDataBase.getCloudPoints(), event);
+            if (liDarWorkerTracker.getStatus() == STATUS.ERROR) {
+                sendBroadcast(new CrashedBroadcast(this.getName()));
+            } else if (liDarWorkerTracker.getFrequency() == 0) {
+                sendEvent(new TrackedObjectsEvent(newTrackedObjects));
+            }
         });
 
         // Subscribe to TerminatedBroadcast

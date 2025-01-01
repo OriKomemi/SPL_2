@@ -91,6 +91,7 @@ public class MessageBusImpl implements MessageBus {
         if (m == null) {
             return null;
         }
+        System.out.println(m.getName()+": send "+e.getClass());
         BlockingQueue<Message> serviceQueue = queues.get(m);
         if (serviceQueue == null) {
             return null;

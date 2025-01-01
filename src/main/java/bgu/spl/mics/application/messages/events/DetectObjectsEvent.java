@@ -10,6 +10,7 @@ import bgu.spl.mics.application.objects.DetectedObject;
  */
 public class DetectObjectsEvent implements Event<List<DetectedObject>> {
     private final int time;
+    private final int detectedTime;
     private final List<DetectedObject> detectedObjects;
 
     /**
@@ -17,8 +18,9 @@ public class DetectObjectsEvent implements Event<List<DetectedObject>> {
      *
      * @param detectedObjects The list of detected objects to be processed.
      */
-    public DetectObjectsEvent(int time, List<DetectedObject> detectedObjects) {
+    public DetectObjectsEvent(int time, int detectedTime, List<DetectedObject> detectedObjects) {
         this.time = time;
+        this.detectedTime = detectedTime;
         this.detectedObjects = detectedObjects;
     }
 
@@ -31,5 +33,9 @@ public class DetectObjectsEvent implements Event<List<DetectedObject>> {
 
     public int getTime() {
         return time;
+    }
+
+    public int getDetectedTime() {
+        return detectedTime;
     }
 }

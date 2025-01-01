@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import bgu.spl.mics.MicroService;
@@ -74,23 +75,38 @@ public class GurionRockRunner {
 
 
 
-        // Combine all services
+ // Combine all services except TimeService
         List<MicroService> allServices = new ArrayList<>();
         allServices.addAll(lidarServices);
         allServices.add(poseService);
         allServices.add(fusionSlamService);
         allServices.addAll(cameraServices);
-        allServices.add(timeService);
 
         // Initialize thread pool
-        ExecutorService executorService = Executors.newFixedThreadPool(allServices.size());
+        ExecutorService executorService = Executors.newFixedThreadPool(allServices.size() + 1);
 
-        // Start all services
+        // Start all services except TimeService
         allServices.forEach(service -> executorService.execute(service));
 
+        // Delay execution of TimeService by 100 milliseconds
+        executorService.execute(() -> {
+            try {
+                TimeUnit.MILLISECONDS.sleep(100); // Delay before starting TimeService
+                timeService.run();
+            } catch (InterruptedException e) {
+                System.err.println("TimeService startup interrupted: " + e.getMessage());
+            }
+        });
+
+        // Shut down the executor after all services finish
         executorService.shutdown();
-        while (!executorService.isTerminated()) {
-            // Wait for all services to terminate
+        try {
+            if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
+                System.err.println("Executor did not terminate within the expected time.");
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
         }
 
         System.out.println("Simulation completed. Results exported to output_file.json");

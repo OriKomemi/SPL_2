@@ -20,6 +20,7 @@ public class LiDarWorkerTracker {
     private List<TrackedObject> trackedObjects;
     private List<TrackedObject> lastTrackedObjects;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
+    private final String errorMessage;
 
     /**
      * Constructor for LiDarWorkerTracker.
@@ -73,18 +74,23 @@ public class LiDarWorkerTracker {
     public String getLidarDataPath() {
         return lidarDataPath;
     }
-    public void createTrackedObjects(List<StampedCloudPoints> cloudPoints, DetectObjectsEvent event) {
+    public List<TrackedObject> createTrackedObjects(List<StampedCloudPoints> cloudPoints, DetectObjectsEvent event) {
+        List<TrackedObject> matchTrackedObjects = new ArrayList<>();
         for (DetectedObject obj : event.getDetectedObjects()) {
-            System.out.println(obj.getId());
             cloudPoints.stream()
-                .filter(cloudPoint -> cloudPoint.getId().equals(obj.getId()) && cloudPoint.getTime() == event.getTime())
+                .filter(cloudPoint -> cloudPoint.getId().equals(obj.getId()) && cloudPoint.getTime() == event.getDetectedTime())
                 .forEach((stampedCloudPoints) -> {
-                    trackedObjects.add(
-                        new TrackedObject(obj.getId(), stampedCloudPoints.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
+                    if (stampedCloudPoints.getId().equals("ERROR"))
+                        this.status = STATUS.ERROR;
+                        this.errorMessage = stampedCloudPoints.
+                    matchTrackedObjects.add(
+                        new TrackedObject(obj.getId(), event.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
                     );
-                    this.setTrackedObjects(trackedObjects);
                 });
+                trackedObjects.addAll(matchTrackedObjects);
         }
+        stats.addTrackedObjects(matchTrackedObjects.size());
+        return matchTrackedObjects;
     }
 
     public List<TrackedObject> matchTrackedObjects(int currentTick) {
@@ -93,7 +99,6 @@ public class LiDarWorkerTracker {
             ).collect(Collectors.toList());
         if (!matchTrackedObjects.isEmpty()) {
             lastTrackedObjects = matchTrackedObjects;
-            stats.addTrackedObjects(matchTrackedObjects.size());
             return matchTrackedObjects;
         } else {
             return new ArrayList<>();

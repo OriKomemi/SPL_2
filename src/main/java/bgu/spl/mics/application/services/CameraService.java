@@ -45,10 +45,14 @@ public class CameraService extends MicroService {
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
             int currentTick = tick.getTick();
             List<StampedDetectedObjects> objs = camera.getStampedDetectedObjects(currentTick);
-            for (StampedDetectedObjects stampedObject : objs) {
-                System.out.println("DetectObjectsEvent out");
-                sendEvent(new DetectObjectsEvent(stampedObject.getTime(), stampedObject.getDetectedObjects()));
+            if (camera.getStatus() == STATUS.ERROR) {
+                sendBroadcast(new CrashedBroadcast(this.getName()));
+            } else {
+                for (StampedDetectedObjects stampedObject : objs) {
+                    sendEvent(new DetectObjectsEvent(currentTick, stampedObject.getTime(), stampedObject.getDetectedObjects()));
+                }
             }
+
             if (currentTick - camera.getFrequency() > camera.getLastTick()) {
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(true));

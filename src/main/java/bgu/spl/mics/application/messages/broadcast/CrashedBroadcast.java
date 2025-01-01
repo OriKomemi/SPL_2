@@ -8,14 +8,16 @@ import bgu.spl.mics.Broadcast;
 public class CrashedBroadcast implements Broadcast {
 
     private final String senderServiceName;
+    private final String error;
 
     /**
      * Constructor for CrashedBroadcast.
      *
      * @param senderServiceName The name of the service that crashed.
      */
-    public CrashedBroadcast(String senderServiceName) {
+    public CrashedBroadcast(String senderServiceName, String error) {
         this.senderServiceName = senderServiceName;
+        this.error = error;
     }
 
     /**
@@ -30,5 +32,9 @@ public class CrashedBroadcast implements Broadcast {
         return "CrashedBroadcast{" +
                 "senderServiceName='" + senderServiceName + '\'' +
                 '}';
+    }
+
+    public String getError() {
+        return error;
     }
 }

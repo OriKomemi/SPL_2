@@ -48,7 +48,6 @@ public class FusionSlamService extends MicroService {
         // Subscribe to PoseEvent
         subscribeEvent(PoseEvent.class, (PoseEvent event) -> {
             currentPose = event.getPose();
-            System.out.println("currentPose: " + currentPose);
             fusionSlam.addPose(currentPose);
         });
 
@@ -101,6 +100,7 @@ public class FusionSlamService extends MicroService {
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed) -> {
             System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
+            //TODO export json error file
             terminate();
         });
     }

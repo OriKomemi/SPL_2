@@ -17,6 +17,7 @@ public class Camera {
 
 
 
+
     /**
      * Constructor for the Camera class.
      *
@@ -84,6 +85,10 @@ public class Camera {
             .filter(obj -> obj.getTime() == (currentTick - frequency))
             .forEach(stampedObject -> {
                 objs.add(stampedObject);
+                for (DetectedObject obj: stampedObject.getDetectedObjects()) {
+                    if (obj.getId().equals("ERROR"))
+                        this.status = STATUS.ERROR;
+                }
                 stats.addDetectedObjects(stampedObject.getDetectedObjects().size());
             });
         return objs;
