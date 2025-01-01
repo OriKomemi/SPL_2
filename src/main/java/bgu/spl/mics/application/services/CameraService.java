@@ -8,6 +8,7 @@ import bgu.spl.mics.application.messages.broadcast.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.broadcast.TickBroadcast;
 import bgu.spl.mics.application.messages.events.DetectObjectsEvent;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
@@ -46,7 +47,7 @@ public class CameraService extends MicroService {
             int currentTick = tick.getTick();
             List<StampedDetectedObjects> objs = camera.getStampedDetectedObjects(currentTick);
             if (camera.getStatus() == STATUS.ERROR) {
-                sendBroadcast(new CrashedBroadcast(this.getName()));
+                sendBroadcast(new CrashedBroadcast(this.getName(), camera.getErrorMessgae()));
             } else {
                 for (StampedDetectedObjects stampedObject : objs) {
                     sendEvent(new DetectObjectsEvent(currentTick, stampedObject.getTime(), stampedObject.getDetectedObjects()));
@@ -70,6 +71,8 @@ public class CameraService extends MicroService {
         });
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
+            FusionSlam fusionSlam = FusionSlam.getInstance();
+            fusionSlam.addLastCameraFrame(this.getName(), camera.getLastDetectedObjects());
             System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
             terminate();
         });

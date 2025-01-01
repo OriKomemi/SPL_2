@@ -20,7 +20,6 @@ public class LiDarWorkerTracker {
     private List<TrackedObject> trackedObjects;
     private List<TrackedObject> lastTrackedObjects;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
-    private final String errorMessage;
 
     /**
      * Constructor for LiDarWorkerTracker.
@@ -82,7 +81,6 @@ public class LiDarWorkerTracker {
                 .forEach((stampedCloudPoints) -> {
                     if (stampedCloudPoints.getId().equals("ERROR"))
                         this.status = STATUS.ERROR;
-                        this.errorMessage = stampedCloudPoints.
                     matchTrackedObjects.add(
                         new TrackedObject(obj.getId(), event.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
                     );

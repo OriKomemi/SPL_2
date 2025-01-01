@@ -14,7 +14,8 @@ public class Camera {
     private final List<StampedDetectedObjects> detectedObjectsList;
     private int lastTick = 0;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
-
+    private StampedDetectedObjects lastDetectedObjects;  
+    private String errorMessgae;
 
 
 
@@ -72,11 +73,19 @@ public class Camera {
         return lastTick;
     }
 
+    public StampedDetectedObjects getLastDetectedObjects() {
+        return lastDetectedObjects;
+    }
+
     /**
      * @return The list of detected objects with timestamps.
      */
     public List<StampedDetectedObjects> getDetectedObjectsList() {
         return detectedObjectsList;
+    }
+
+    public String getErrorMessgae() {
+        return errorMessgae;
     }
 
     public List<StampedDetectedObjects> getStampedDetectedObjects(int currentTick) {
@@ -86,8 +95,13 @@ public class Camera {
             .forEach(stampedObject -> {
                 objs.add(stampedObject);
                 for (DetectedObject obj: stampedObject.getDetectedObjects()) {
-                    if (obj.getId().equals("ERROR"))
+                    if (obj.getId().equals("ERROR")) {
                         this.status = STATUS.ERROR;
+                        this.errorMessgae = obj.getDescription();
+                    } else {
+                        lastDetectedObjects = stampedObject;
+                    }
+                        
                 }
                 stats.addDetectedObjects(stampedObject.getDetectedObjects().size());
             });
