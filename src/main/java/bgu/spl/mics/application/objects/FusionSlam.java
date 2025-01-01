@@ -177,12 +177,22 @@ public class FusionSlam {
     public void increaseTerminatedSensorsCounter() {
         this.terminatedSensorsCounter += 1;
     }
-    
+
     public void addLastLidarFrame(String serviceName, List<TrackedObject> lastTrackedObjects) {
         lastLiDarWorkerTrackersFrame.put(serviceName, lastTrackedObjects);
     }
+
     public void addLastCameraFrame(String serviceName, StampedDetectedObjects lastDetectedObjects) {
         lastCamerasFrame.put(serviceName, lastDetectedObjects);
     }
+
+    public Map<String, StampedDetectedObjects> getLastCamerasFrame() {
+        return lastCamerasFrame;
+    }
+
+    public Map<String, List<TrackedObject>> getLastLiDarWorkerTrackersFrame() {
+        return lastLiDarWorkerTrackersFrame;
+    }
+
 
 }

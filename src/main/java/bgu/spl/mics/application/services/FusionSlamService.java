@@ -100,7 +100,7 @@ public class FusionSlamService extends MicroService {
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed) -> {
             System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
-            //TODO export json error file
+            JsonExporter.exportErrorOutput(crashed.getError(), crashed.getSenderServiceName(), fusionSlam.getLandmarks());
             terminate();
         });
     }
