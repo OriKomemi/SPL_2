@@ -72,7 +72,7 @@ public class CameraService extends MicroService {
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
             FusionSlam fusionSlam = FusionSlam.getInstance();
-            fusionSlam.addLastCameraFrame(this.getName(), camera.getLastDetectedObjects());
+            fusionSlam.addLastCameraFrame(this.getName(), camera.getLastStampedDetectedObjects());
             System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
             terminate();
         });

@@ -14,7 +14,7 @@ public class Camera {
     private final List<StampedDetectedObjects> detectedObjectsList;
     private int lastTick = 0;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
-    private StampedDetectedObjects lastDetectedObjects;  
+    private StampedDetectedObjects lastStampedDetectedObjects;  
     private String errorMessgae;
 
 
@@ -73,8 +73,8 @@ public class Camera {
         return lastTick;
     }
 
-    public StampedDetectedObjects getLastDetectedObjects() {
-        return lastDetectedObjects;
+    public StampedDetectedObjects getLastStampedDetectedObjects() {
+        return lastStampedDetectedObjects;
     }
 
     /**
@@ -91,18 +91,19 @@ public class Camera {
     public List<StampedDetectedObjects> getStampedDetectedObjects(int currentTick) {
         List<StampedDetectedObjects> objs = new ArrayList<>();
         detectedObjectsList.stream()
-            .filter(obj -> obj.getTime() == (currentTick - frequency))
+            .filter(stampedObject -> stampedObject.getTime() == (currentTick - frequency))
             .forEach(stampedObject -> {
                 objs.add(stampedObject);
-                for (DetectedObject obj: stampedObject.getDetectedObjects()) {
-                    if (obj.getId().equals("ERROR")) {
+                for (DetectedObject detectedObject: stampedObject.getDetectedObjects()) {
+                    if (detectedObject.getId().equals("ERROR")) {
                         this.status = STATUS.ERROR;
-                        this.errorMessgae = obj.getDescription();
-                    } else {
-                        lastDetectedObjects = stampedObject;
-                    }
-                        
+                        this.errorMessgae = detectedObject.getDescription();
+                    } 
                 }
+                if (this.status != STATUS.ERROR) {
+                    this.lastStampedDetectedObjects = stampedObject;
+                }
+
                 stats.addDetectedObjects(stampedObject.getDetectedObjects().size());
             });
         return objs;
