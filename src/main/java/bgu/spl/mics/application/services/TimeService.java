@@ -51,7 +51,7 @@ public class TimeService extends MicroService {
                     terminate();
                 }
             }
-        }, 0, TickTime * 500, TimeUnit.MILLISECONDS);
+        }, 0, TickTime, TimeUnit.SECONDS);
 
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
             if (!terminated.getIsSensor()) {
