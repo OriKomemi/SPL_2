@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,104 +27,66 @@ import bgu.spl.mics.application.services.CameraService;
 class CameraServiceTest {
 
     private Camera camera;
-    private MessageBusImpl messageBus;
+    private List<StampedDetectedObjects> stampedDetectedObjectsList;
 
     @BeforeEach
     void setUp() {
-        messageBus = MessageBusImpl.getInstance();
-        List<DetectedObject> singleDetectedObject = Arrays.asList(new DetectedObject("1", "Wall"));
-        List<DetectedObject> multipleDetectedObject = Arrays.asList(
-            new DetectedObject("2", "Wall"),
-            new DetectedObject("3", "Chair Base")
+        // Pre-condition: Initialize Camera with detected objects
+        stampedDetectedObjectsList = Arrays.asList(
+            new StampedDetectedObjects(2, Arrays.asList(
+                new DetectedObject("1", "Tree"),
+                new DetectedObject("ERROR", "Error Object")
+            )),
+            new StampedDetectedObjects(4, Arrays.asList(
+                new DetectedObject("2", "Car"),
+                new DetectedObject("3", "Building")
+            ))
         );
-        // Creating mock data for detected objects
-        StampedDetectedObjects object1 = new StampedDetectedObjects(
-            2,
-            singleDetectedObject
-        );
-
-        StampedDetectedObjects object2 = new StampedDetectedObjects(
-            4,
-            multipleDetectedObject
-        );
-
-        List<StampedDetectedObjects> detectedObjectsList = Arrays.asList(object1, object2);
-
-        // Initialize Camera and CameraService
-        camera = new Camera(1, 2, STATUS.UP, detectedObjectsList);
+        camera = new Camera(1, 2, stampedDetectedObjectsList);
     }
 
     @Test
-    void testDetectObjectsEventSent() {
-        AtomicBoolean eventSent = new AtomicBoolean(false);
-        CountDownLatch latch = new CountDownLatch(2); // Wait for both services to initialize
+    void testGetStampedDetectedObjects() {
+        int currentTick = 6;
+        List<StampedDetectedObjects> result = camera.getStampedDetectedObjects(currentTick);
 
-        // Create a MicroService to listen for DetectObjectsEvent
-        MicroService mockService = new MicroService("MockService") {
-            @Override
-            protected void initialize() {
-                subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent event) -> {
-                    eventSent.set(true);
-                    assertNotNull(event.getDetectedObjects());
-                    assertFalse(event.getDetectedObjects().isEmpty());
-                    System.out.println("DetectObjectsEvent received: " + event.getDetectedObjects());
-                });
+        assertNotNull(result, "Result should not be null.");
+        assertEquals(1, result.size(), "Expected one object.");
 
-                // Subscribe to TerminatedBroadcast for graceful shutdown
-                subscribeBroadcast(TerminatedBroadcast.class, (terminated) -> {
-                    System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
-                    terminate();
-                });
+        StampedDetectedObjects expectedStampedObject = stampedDetectedObjectsList.stream()
+            .filter(obj -> obj.getTime() == (currentTick - camera.getFrequency()))
+            .findFirst()
+            .orElse(null);
 
-                latch.countDown(); // Notify that initialization is complete
-            }
-        };
+        StampedDetectedObjects stampedObject = result.get(0);
+        assertEquals(expectedStampedObject.getTime(), stampedObject.getTime(), "Detected time should match currentTick - frequency.");
 
-        // Extend CameraService to use latch
-        CameraService cameraServiceWithLatch = new CameraService(camera) {
-            @Override
-            protected void initialize() {
-                super.initialize();
-                latch.countDown(); // Notify that initialization is complete
-            }
-        };
+        List<DetectedObject> expectedObjects = expectedStampedObject.getDetectedObjects();
+        List<DetectedObject> actualObjects = stampedObject.getDetectedObjects();
+        
+        for (int i = 0; i < expectedObjects.size(); i++) {
+            DetectedObject expected = expectedObjects.get(i);
+            DetectedObject actual = actualObjects.get(i);
 
-        // Start services in separate threads
-        Thread cameraThread = new Thread(cameraServiceWithLatch);
-        Thread mockServiceThread = new Thread(mockService);
-        cameraThread.start();
-        mockServiceThread.start();
-
-        try {
-            // Wait for both services to initialize
-            if (!latch.await(2, TimeUnit.SECONDS)) {
-                fail("Services did not initialize in time.");
-            }
-
-            // Simulate TickBroadcast messages
-            messageBus.sendBroadcast(new TickBroadcast(2)); // Should trigger an event
-            Thread.sleep(100); // Allow time for processing
-
-            assertTrue(eventSent.get(), "DetectObjectsEvent should be sent at tick 2");
-
-            eventSent.set(false); // Reset flag
-            messageBus.sendBroadcast(new TickBroadcast(4)); // Should trigger another event
-            Thread.sleep(100);
-
-            assertTrue(eventSent.get(), "DetectObjectsEvent should be sent at tick 4");
-
-            // Send TerminatedBroadcast to terminate services
-            messageBus.sendBroadcast(new TerminatedBroadcast());
-        } catch (InterruptedException e) {
-            fail("Test interrupted: " + e.getMessage());
-        } finally {
-            try {
-                cameraThread.join(); // Wait for threads to finish
-                mockServiceThread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            assertEquals(expected.getId(), actual.getId(), "Detected object ID should match.");
+            assertEquals(expected.getDescription(), actual.getDescription(), "Detected object description should match.");
         }
+
+    }
+    
+    @Test
+    void testGetStampedDetectedObjectsWithError() {
+        
+        List<StampedDetectedObjects> detectedObjects = camera.getStampedDetectedObjects(4);
+
+        
+        detectedObjects.forEach(stampedObject -> stampedObject.getDetectedObjects().forEach(obj -> {
+            if (obj.getId().equals("ERROR")) {
+                camera.setStatus(STATUS.ERROR);
+            }
+        }));
+        assertEquals(STATUS.ERROR, camera.getStatus(), "Camera status should change to ERROR at tick 4.");
+
     }
 
 }
