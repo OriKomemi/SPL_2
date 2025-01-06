@@ -17,7 +17,6 @@ public class TimeService extends MicroService {
     private final int TickTime; // Duration of each tick in milliseconds
     private final int Duration; // Total number of ticks before termination
     private final ScheduledExecutorService scheduler;
-
     /**
      * Constructor for TimeService.
      *
@@ -54,8 +53,9 @@ public class TimeService extends MicroService {
         }, 0, TickTime, TimeUnit.SECONDS);
 
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
-            if (!terminated.getIsSensor()) {
+            if (!terminated.isSensor()) {
                 System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
+                scheduler.shutdown();
                 terminate();
             }
         });

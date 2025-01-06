@@ -30,7 +30,7 @@ class CameraTest {
                 new DetectedObject("ERROR", "Error Object")
             ))
         );
-        camera = new Camera(1, 2, stampedDetectedObjectsList);
+        camera = new Camera(1, 2, stampedDetectedObjectsList, "Camera1");
     }
 
     @Test

@@ -83,7 +83,7 @@ public class FusionSlamService extends MicroService {
 
         // Subscribe to TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
-            if (terminated.getIsSensor()) {
+            if (terminated.isSensor()) {
                 fusionSlam.increaseTerminatedSensorsCounter();
                 if (fusionSlam.getNumOfSensors() == fusionSlam.getTerminatedSensorsCounter()) {
                     JsonExporter.exportStatistics(fusionSlam.getLandmarks());
@@ -99,8 +99,9 @@ public class FusionSlamService extends MicroService {
 
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (CrashedBroadcast crashed) -> {
-            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
-            JsonExporter.exportErrorOutput(crashed.getError(), crashed.getSenderServiceName(), fusionSlam.getLandmarks());
+            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getFaultySensor());
+            JsonExporter.exportErrorOutput(crashed.getError(), crashed.getFaultySensor(), fusionSlam.getLandmarks());
+            sendBroadcast(new TerminatedBroadcast(false));
             terminate();
         });
     }

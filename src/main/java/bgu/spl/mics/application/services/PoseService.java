@@ -47,7 +47,7 @@ public class PoseService extends MicroService {
         });
 
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
-            if (!terminated.getIsSensor()) {
+            if (!terminated.isSensor()) {
                 System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
                 terminate();
             }
@@ -55,7 +55,7 @@ public class PoseService extends MicroService {
 
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
-            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
+            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getFaultySensor());
             terminate();
         });
     }

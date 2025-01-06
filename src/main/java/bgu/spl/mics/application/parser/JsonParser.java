@@ -80,7 +80,7 @@ public class JsonParser{
             String cameraName = entry.getKey();
             List<StampedDetectedObjects> detections = entry.getValue();
             CameraConfiguration cameraConf = config.getCameras().getCameraConfiguration(cameraName);
-            cameras.add(new Camera(cameraConf.getId(), cameraConf.getFrequency(), detections));
+            cameras.add(new Camera(cameraConf.getId(), cameraConf.getFrequency(), detections, cameraName));
         }
         return cameras;
     }

@@ -9,6 +9,7 @@ import java.util.List;
 public class Camera {
 
     private final int id;
+    private final String cameraKey;
     private final int frequency;
     private STATUS status;
     private final List<StampedDetectedObjects> detectedObjectsList;
@@ -27,10 +28,11 @@ public class Camera {
      * @param status              The current status of the camera.
      * @param detectedObjectsList The list of detected objects with timestamps.
      */
-    public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
+    public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList, String cameraKey) {
         this.id = id;
         this.frequency = frequency;
         this.status = STATUS.UP;
+        this.cameraKey = cameraKey;
         this.detectedObjectsList = detectedObjectsList;
         for (StampedDetectedObjects stampedObj : detectedObjectsList) {
             if (stampedObj.getTime() > lastTick) {
@@ -108,4 +110,9 @@ public class Camera {
             });
         return objs;
     }
+
+    public String getCameraKey() {
+        return cameraKey;
+    }
+
 }

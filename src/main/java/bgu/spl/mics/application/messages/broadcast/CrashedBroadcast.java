@@ -7,7 +7,7 @@ import bgu.spl.mics.Broadcast;
  */
 public class CrashedBroadcast implements Broadcast {
 
-    private final String senderServiceName;
+    private final String faultySensor;
     private final String error;
 
     /**
@@ -16,21 +16,21 @@ public class CrashedBroadcast implements Broadcast {
      * @param senderServiceName The name of the service that crashed.
      */
     public CrashedBroadcast(String senderServiceName, String error) {
-        this.senderServiceName = senderServiceName;
+        this.faultySensor = senderServiceName;
         this.error = error;
     }
 
     /**
      * @return The name of the service that crashed.
      */
-    public String getSenderServiceName() {
-        return senderServiceName;
+    public String getFaultySensor() {
+        return faultySensor;
     }
 
     @Override
     public String toString() {
         return "CrashedBroadcast{" +
-                "senderServiceName='" + senderServiceName + '\'' +
+                "senderServiceName='" + faultySensor + '\'' +
                 '}';
     }
 

@@ -16,7 +16,7 @@ public class TerminatedBroadcast implements Broadcast {
     /**
      * @return The current tick.
      */
-    public boolean getIsSensor() {
+    public boolean isSensor() {
         return this.isSensor;
     }
 }

@@ -47,7 +47,7 @@ public class CameraService extends MicroService {
             int currentTick = tick.getTick();
             List<StampedDetectedObjects> objs = camera.getStampedDetectedObjects(currentTick);
             if (camera.getStatus() == STATUS.ERROR) {
-                sendBroadcast(new CrashedBroadcast(this.getName(), camera.getErrorMessgae()));
+                sendBroadcast(new CrashedBroadcast(this.camera.getCameraKey(), camera.getErrorMessgae()));
             } else {
                 for (StampedDetectedObjects stampedObject : objs) {
                     sendEvent(new DetectObjectsEvent(currentTick, stampedObject.getTime(), stampedObject.getDetectedObjects()));
@@ -64,7 +64,7 @@ public class CameraService extends MicroService {
 
         // Subscribe to TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
-            if (!terminated.getIsSensor()) {
+            if (!terminated.isSensor()) {
                 System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
                 terminate();
             }
@@ -72,8 +72,8 @@ public class CameraService extends MicroService {
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
             FusionSlam fusionSlam = FusionSlam.getInstance();
-            fusionSlam.addLastCameraFrame(this.getName(), camera.getLastStampedDetectedObjects());
-            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
+            fusionSlam.addLastCameraFrame(this.camera.getCameraKey(), camera.getLastStampedDetectedObjects());
+            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getFaultySensor());
             terminate();
         });
     }

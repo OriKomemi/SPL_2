@@ -75,7 +75,7 @@ public class LiDarService extends MicroService {
 
         // Subscribe to TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, (TerminatedBroadcast terminated) -> {
-            if (!terminated.getIsSensor()) {
+            if (!terminated.isSensor()) {
                 System.out.println(getName() + " received TerminatedBroadcast. Exiting...");
                 terminate();
             }
@@ -84,8 +84,8 @@ public class LiDarService extends MicroService {
         // Subscribe to CrashedBroadcast
         subscribeBroadcast(CrashedBroadcast.class, (crashed) -> {
             FusionSlam fusionSlam = FusionSlam.getInstance();
-            fusionSlam.addLastLidarFrame(this.getName(), liDarWorkerTracker.getLastTrackedObjects());
-            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getSenderServiceName());
+            fusionSlam.addLastLidarFrame("LiDarTrackerWorker"+this.liDarWorkerTracker.getId(), liDarWorkerTracker.getLastTrackedObjects());
+            System.out.println(getName() + " received CrashedBroadcast from: " + crashed.getFaultySensor());
             terminate();
         });
     }
