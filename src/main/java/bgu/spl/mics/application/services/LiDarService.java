@@ -26,6 +26,7 @@ public class LiDarService extends MicroService {
 
     private final LiDarWorkerTracker liDarWorkerTracker;
     private final LiDarDataBase liDARDataBase;
+    private int currentTick;
 
     /**
      * Constructor for LiDarService.
@@ -48,7 +49,7 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, (TickBroadcast tick) -> {
-            int currentTick = tick.getTick();
+            currentTick = tick.getTick();
             List<TrackedObject> matchTrackedObjects = liDarWorkerTracker.matchTrackedObjects(currentTick);
 
             if (!matchTrackedObjects.isEmpty()) {
@@ -65,11 +66,12 @@ public class LiDarService extends MicroService {
 
         // Subscribe to DetectObjectsEvent
         subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent event) -> {
-            List<TrackedObject> newTrackedObjects = liDarWorkerTracker.createTrackedObjects(liDARDataBase.getCloudPoints(), event);
+            liDarWorkerTracker.createTrackedObjects(liDARDataBase.getCloudPoints(), event);
+            List<TrackedObject> matchTrackedObjects = liDarWorkerTracker.matchTrackedObjects(currentTick);
             if (liDarWorkerTracker.getStatus() == STATUS.ERROR) {
                 sendBroadcast(new CrashedBroadcast(this.getName(), ""));
-            } else if (liDarWorkerTracker.getFrequency() == 0) {
-                sendEvent(new TrackedObjectsEvent(newTrackedObjects));
+            } else if (!matchTrackedObjects.isEmpty()) {
+                sendEvent(new TrackedObjectsEvent(matchTrackedObjects));
             }
         });
 

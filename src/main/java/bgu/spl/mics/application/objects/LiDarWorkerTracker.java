@@ -64,7 +64,7 @@ public class LiDarWorkerTracker {
         this.trackedObjects = val;
     }
 
-    public List<TrackedObject> createTrackedObjects(List<StampedCloudPoints> cloudPoints, DetectObjectsEvent event) {
+    public void createTrackedObjects(List<StampedCloudPoints> cloudPoints, DetectObjectsEvent event) {
         List<TrackedObject> matchTrackedObjects = new ArrayList<>();
         for (DetectedObject obj : event.getDetectedObjects()) {
             cloudPoints.stream()
@@ -73,14 +73,13 @@ public class LiDarWorkerTracker {
                     if (stampedCloudPoints.getId().equals("ERROR"))
                         this.status = STATUS.ERROR;
                     matchTrackedObjects.add(
-                        new TrackedObject(obj.getId(), event.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
+                        new TrackedObject(obj.getId(), event.getDetectedTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
                     );
-                    System.out.println("addTrackObj: " + obj.getId() + event.getTime() + obj.getDescription() + stampedCloudPoints.getCloudPoints().size());
+                    System.out.println("addTrackObj: " + obj.getId() + event.getDetectedTime() + obj.getDescription() + stampedCloudPoints.getCloudPoints().size());
                 });     
         }
         trackedObjects.addAll(matchTrackedObjects);
         stats.addTrackedObjects(matchTrackedObjects.size());
-        return matchTrackedObjects;
     }
 
     public List<TrackedObject> matchTrackedObjects(int currentTick) {
