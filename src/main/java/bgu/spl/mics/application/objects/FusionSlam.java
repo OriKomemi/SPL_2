@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
@@ -40,8 +41,8 @@ public class FusionSlam {
     private int numOfSensors;
     private int terminatedSensorsCounter;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
-    private Map<String, List<TrackedObject>> lastLiDarWorkerTrackersFrame = new HashMap<>();
-    private Map<String, StampedDetectedObjects> lastCamerasFrame = new HashMap<>();
+    private ConcurrentHashMap<String, List<TrackedObject>> lastLiDarWorkerTrackersFrame = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, StampedDetectedObjects> lastCamerasFrame = new ConcurrentHashMap<>();
 
 
     // Private constructor to prevent instantiation

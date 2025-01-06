@@ -60,10 +60,6 @@ public class LiDarWorkerTracker {
         return trackedObjects;
     }
 
-    public void setLastTrackedObjects(List<TrackedObject> val) {
-        this.lastTrackedObjects = val;
-    }
-
     public void setTrackedObjects(List<TrackedObject> val) {
         this.trackedObjects = val;
     }
@@ -79,9 +75,10 @@ public class LiDarWorkerTracker {
                     matchTrackedObjects.add(
                         new TrackedObject(obj.getId(), event.getTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
                     );
-                });
-                trackedObjects.addAll(matchTrackedObjects);
+                    System.out.println("addTrackObj: " + obj.getId() + event.getTime() + obj.getDescription() + stampedCloudPoints.getCloudPoints().size());
+                });     
         }
+        trackedObjects.addAll(matchTrackedObjects);
         stats.addTrackedObjects(matchTrackedObjects.size());
         return matchTrackedObjects;
     }
@@ -91,7 +88,7 @@ public class LiDarWorkerTracker {
             obj -> obj.getTime() == (currentTick - frequency)
             ).collect(Collectors.toList());
         if (!matchTrackedObjects.isEmpty()) {
-            lastTrackedObjects = matchTrackedObjects;
+            this.lastTrackedObjects = new ArrayList<>(matchTrackedObjects);
             return matchTrackedObjects;
         } else {
             return new ArrayList<>();
