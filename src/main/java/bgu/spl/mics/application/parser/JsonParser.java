@@ -87,10 +87,9 @@ public class JsonParser{
 
     public List<LiDarWorkerTracker> getLidarWorkers() {
         List<LiDarWorkerTracker> workers = new ArrayList<>();
-        Path fullPath = Paths.get(dir, config.getLiDarWorkers().getLidars_data_path());
 
         for (LidarConfiguration conf : config.getLiDarWorkers().getLidarConfigurations()) {
-            workers.add(new LiDarWorkerTracker(conf.getId(), conf.getFrequency(), fullPath.normalize().toString()));
+            workers.add(new LiDarWorkerTracker(conf.getId(), conf.getFrequency()));
         }
         return workers;
     }

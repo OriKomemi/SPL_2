@@ -36,7 +36,7 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker liDarWorkerTracker) {
         super("LiDarService" + liDarWorkerTracker.getId());
         this.liDarWorkerTracker = liDarWorkerTracker;
-        this.liDARDataBase = LiDarDataBase.getInstance(liDarWorkerTracker.getLidarDataPath());
+        this.liDARDataBase = LiDarDataBase.getInstance();
     }
 
     /**

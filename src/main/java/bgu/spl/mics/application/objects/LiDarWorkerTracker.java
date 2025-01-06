@@ -16,7 +16,6 @@ public class LiDarWorkerTracker {
     private final int id;
     private final int frequency;
     private STATUS status;
-    private final String lidarDataPath;
     private List<TrackedObject> trackedObjects;
     private List<TrackedObject> lastTrackedObjects;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
@@ -29,10 +28,9 @@ public class LiDarWorkerTracker {
      * @param status             The status of the LiDAR tracker.
      * @param lastTrackedObjects The last objects tracked by the LiDAR.
      */
-    public LiDarWorkerTracker(int id, int frequency, String lidarDataPath) {
+    public LiDarWorkerTracker(int id, int frequency) {
         this.id = id;
         this.frequency = frequency;
-        this.lidarDataPath = lidarDataPath;
         this.status = STATUS.UP;
         this.lastTrackedObjects = new ArrayList<>();
         this.trackedObjects = new ArrayList<>();
@@ -70,9 +68,6 @@ public class LiDarWorkerTracker {
         this.trackedObjects = val;
     }
 
-    public String getLidarDataPath() {
-        return lidarDataPath;
-    }
     public List<TrackedObject> createTrackedObjects(List<StampedCloudPoints> cloudPoints, DetectObjectsEvent event) {
         List<TrackedObject> matchTrackedObjects = new ArrayList<>();
         for (DetectedObject obj : event.getDetectedObjects()) {
