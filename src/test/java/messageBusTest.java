@@ -57,11 +57,6 @@ class MessageBusTest {
         messageBus = MessageBusImpl.getInstance();
     }
 
-    /**
-     * 1) Test register/unregister flow:
-     *    - Register a microservice and ensure no exception is thrown.
-     *    - Unregister the microservice and confirm it is effectively removed.
-     */
     @Test
     void testRegisterAndUnregister() {
         MockMicroService mService = new MockMicroService("TestMS");
@@ -79,13 +74,6 @@ class MessageBusTest {
         }, "Expect an exception since MicroService is unregistered.");
     }
 
-    /**
-     * 2) Test sending and receiving an Event:
-     *    - Register a microservice, subscribe it to an event type.
-     *    - Send the event, ensure it ends up in the microservice's queue.
-     *    - Check that calling 'awaitMessage' returns that event.
-     *    - Call 'complete' to resolve the Future, and verify it's resolved.
-     */
     @Test
     void testSendEventAndComplete() throws InterruptedException {
         MockMicroService mService = new MockMicroService("EventReceiver");
@@ -111,11 +99,6 @@ class MessageBusTest {
         assertEquals("TestResult", result, "Future should return the completed value.");
     }
 
-    /**
-     * 3) Test sending Broadcast:
-     *    - Register two microservices and subscribe them to the same Broadcast.
-     *    - Send the broadcast and ensure both receive it.
-     */
     @Test
     void testBroadcast() throws InterruptedException {
         MockMicroService m1 = new MockMicroService("M1");
