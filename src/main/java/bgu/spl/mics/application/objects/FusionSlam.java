@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
@@ -32,6 +31,7 @@ public class FusionSlam {
 
     // Public method to initialize the singleton instance
     public static void initialize(int numOfSensors) {
+        FusionSlamHolder.INSTANCE = null;
         FusionSlamHolder.initialize(numOfSensors);
     }
 
@@ -59,7 +59,6 @@ public class FusionSlam {
      * @param landmark The landmark to add.
      */
     public synchronized void addLandmark(Landmark landmark) {
-        System.out.println(landmark.getId());
         landmarks.add(landmark);
         stats.addLandmark();
     }
@@ -67,23 +66,24 @@ public class FusionSlam {
     public List<CloudPoint> transformToGlobalCoordinates(TrackedObject obj, Pose pose) {
         double cosTheta = Math.cos(Math.toRadians(pose.getYaw()));
         double sinTheta = Math.sin(Math.toRadians(pose.getYaw()));
-
-        return obj.getCoordinates().stream().map(local -> new CloudPoint(
-            cosTheta * local.getX() - sinTheta * local.getY() + pose.getX(),
-            sinTheta * local.getX() + cosTheta * local.getY() + pose.getY()
-        )).collect(Collectors.toList());
+        List<CloudPoint> coords = new ArrayList<>();
+        for (CloudPoint coord : obj.getCoordinates()) {
+            coords.add(new CloudPoint(
+            ((cosTheta * coord.getX()) - (sinTheta * coord.getY()) + pose.getX()),
+            ((sinTheta * coord.getX()) + (cosTheta * coord.getY()) + pose.getY())));
+        }
+        return coords;
     }
 
     public void createLandmark(TrackedObject obj, Pose pose) {
         Landmark existingLandmark = findLandmarkById(obj.getId());
         if (existingLandmark == null) {
             // Transform object coordinates to global frame and add as a new landmark
-            Landmark newLandmark = new Landmark(
+            addLandmark(new Landmark(
                 obj.getId(),
                 obj.getDescription(),
                 transformToGlobalCoordinates(obj, pose)
-            );
-            addLandmark(newLandmark);
+            ));
         } else {
             // Update existing landmark with averaged coordinates
             updateLandmark(existingLandmark, transformToGlobalCoordinates(obj, pose));
@@ -114,7 +114,6 @@ public class FusionSlam {
         } else if (newCoordinates.size() > minSize) {
             updatedCoordinates.addAll(newCoordinates.subList(minSize, newCoordinates.size()));
         }
-
         landmark.setCoordinates(updatedCoordinates);
     }
 

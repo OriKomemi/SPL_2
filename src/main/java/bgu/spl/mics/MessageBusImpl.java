@@ -91,7 +91,6 @@ public class MessageBusImpl implements MessageBus {
         if (m == null) {
             return null;
         }
-        System.out.println(m.getName()+": send "+e.getClass());
         BlockingQueue<Message> serviceQueue = queues.get(m);
         if (serviceQueue == null) {
             return null;
@@ -123,5 +122,11 @@ public class MessageBusImpl implements MessageBus {
             throw new IllegalStateException("MicroService is not registered.");
         }
         return queue.take();
+    }
+
+    @Override
+    public boolean isRegistered(MicroService m) {
+        // In this design, 'queues' is the data structure that tracks registered microservices.
+        return queues.containsKey(m);
     }
 }

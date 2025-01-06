@@ -6,7 +6,7 @@ package bgu.spl.mics;
  * It should be implemented as a thread-safe singleton.
  * The message-bus implementation must be thread-safe as
  * it is shared between all the micro-services in the system.
- * You must not alter any of the given methods of this interface. 
+ * You must not alter any of the given methods of this interface.
  * You cannot add methods to this interface.
  */
 public interface MessageBus {
@@ -93,5 +93,7 @@ public interface MessageBus {
      *                              to became available.
      */
     Message awaitMessage(MicroService m) throws InterruptedException;
-    
+
+    boolean isRegistered(MicroService m);
+
 }
