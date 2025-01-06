@@ -2,7 +2,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +20,8 @@ import bgu.spl.mics.MicroService;
  */
 class MessageBusTest {
 
+    //@INV: messageBus is not null after setUp (singleton instance of MessageBusImpl)
+    //@INV: Each registered MicroService has a queue in the messageBus
     private MessageBus messageBus;
 
     /**
@@ -57,6 +58,11 @@ class MessageBusTest {
         messageBus = MessageBusImpl.getInstance();
     }
 
+    /**
+     * //@PRE: MockMicroService mService is created but not registered.
+     * //@POST: After registering, mService is in the bus; after unregistering,
+     *         it is removed and cannot receive messages.
+     */
     @Test
     void testRegisterAndUnregister() {
         MockMicroService mService = new MockMicroService("TestMS");
@@ -74,6 +80,11 @@ class MessageBusTest {
         }, "Expect an exception since MicroService is unregistered.");
     }
 
+    /**
+     * //@PRE: MicroService is registered and subscribed to TestEvent.
+     * //@POST: The Future object for the event is not null and
+     *         is completed with the specified result ("TestResult").
+     */
     @Test
     void testSendEventAndComplete() throws InterruptedException {
         MockMicroService mService = new MockMicroService("EventReceiver");
@@ -99,6 +110,10 @@ class MessageBusTest {
         assertEquals("TestResult", result, "Future should return the completed value.");
     }
 
+    /**
+     * //@PRE: Two MicroServices (m1, m2) are registered and subscribed to TestBroadcast.
+     * //@POST: Both microservices receive the broadcast message.
+     */
     @Test
     void testBroadcast() throws InterruptedException {
         MockMicroService m1 = new MockMicroService("M1");

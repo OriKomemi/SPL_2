@@ -13,13 +13,13 @@ import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 class CameraTest {
-
+    //@INV: camera != null (after setUp() is called)
+    //@INV: stampedDetectedObjectsList != null (after setUp() is called)
     private Camera camera;
     private List<StampedDetectedObjects> stampedDetectedObjectsList;
 
     @BeforeEach
     void setUp() {
-        // Pre-condition: Initialize Camera with detected objects
         stampedDetectedObjectsList = Arrays.asList(
             new StampedDetectedObjects(2, Arrays.asList(
                 new DetectedObject("2", "Car"),
@@ -33,6 +33,11 @@ class CameraTest {
         camera = new Camera(1, 2, stampedDetectedObjectsList, "Camera1");
     }
 
+    /**
+     * //@PRE: currentTick is chosen so that (currentTick - frequency) == 2
+     * //@POST: The returned list must not be null and must match the expected objects.
+     * //@POST: status remains RUNNING (no ERROR objects at that tick).
+     */
     @Test
     void testGetStampedDetectedObjects() {
         int currentTick = 4;
@@ -59,9 +64,15 @@ class CameraTest {
             assertEquals(expected.getId(), actual.getId(), "Detected object ID should match.");
             assertEquals(expected.getDescription(), actual.getDescription(), "Detected object description should match.");
         }
+        assertEquals(camera.getStatus(), STATUS.UP, "camera status should be status up");
 
     }
 
+    /**
+     * //@PRE: currentTick is chosen so that (currentTick - frequency) == 4,
+     *        which contains an ERROR object.
+     * //@POST: The camera status must be updated to ERROR.
+     */
     @Test
     void testGetStampedDetectedObjectsWithError() {
         int currentTick = 6;

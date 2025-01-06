@@ -12,6 +12,8 @@ import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.TrackedObject;
 
 class FusionSlamTest {
+    //@INV: fusionSlam is a singleton (not null after setUp)
+    //@INV: The list of landmarks in fusionSlam is never null
 
     private FusionSlam fusionSlam;
 
@@ -21,6 +23,11 @@ class FusionSlamTest {
         fusionSlam = FusionSlam.getInstance();
     }
 
+    /**
+     * //@PRE: A valid Pose and TrackedObject are provided (pose != null, trackedObject != null).
+     * //@POST: Exactly one new landmark is added to fusionSlam, matching the object's ID and description.
+     * //@POST: The coordinates are correctly transformed to the global frame.
+     */
     @Test
     void testCreateLandmarkForNewObject() {
         // Preconditions: Setup test data
@@ -54,6 +61,11 @@ class FusionSlamTest {
         assertEquals(expectedPoint.getY(), transformedPoint.getY(), 0.1, "Y-coordinate should match expected value.");
     }
 
+    /**
+     * //@PRE: Create a second landmark with an ID that already exists in fusionSlam.
+     * //@POST: fusionSlam.landmarks.size() == 1.
+     * //@POST: The coordinates are averaged between the existing and the new data.
+     */
     @Test
     void testCreateLandmarkForExistingObject() {
         // Preconditions: Add an initial landmark
