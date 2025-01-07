@@ -15,7 +15,7 @@ public class Camera {
     private final List<StampedDetectedObjects> detectedObjectsList;
     private int lastTick = 0;
     private final StatisticalFolder stats = StatisticalFolder.getInstance();
-    private StampedDetectedObjects lastStampedDetectedObjects;  
+    private StampedDetectedObjects lastStampedDetectedObjects;
     private String errorMessgae;
 
 
@@ -100,13 +100,12 @@ public class Camera {
                     if (detectedObject.getId().equals("ERROR")) {
                         this.status = STATUS.ERROR;
                         this.errorMessgae = detectedObject.getDescription();
-                    } 
+                    }
                 }
                 if (this.status != STATUS.ERROR) {
                     this.lastStampedDetectedObjects = stampedObject;
+                    stats.addDetectedObjects(stampedObject.getDetectedObjects().size());
                 }
-
-                stats.addDetectedObjects(stampedObject.getDetectedObjects().size());
             });
         return objs;
     }

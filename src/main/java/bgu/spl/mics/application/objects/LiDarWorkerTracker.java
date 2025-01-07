@@ -76,18 +76,20 @@ public class LiDarWorkerTracker {
                         new TrackedObject(obj.getId(), event.getDetectedTime(), obj.getDescription(), stampedCloudPoints.getCloudPoints())
                     );
                     System.out.println("addTrackObj: " + obj.getId() + event.getDetectedTime() + obj.getDescription() + stampedCloudPoints.getCloudPoints().size());
-                });     
+                });
         }
         trackedObjects.addAll(matchTrackedObjects);
-        stats.addTrackedObjects(matchTrackedObjects.size());
     }
 
     public List<TrackedObject> matchTrackedObjects(int currentTick) {
         List<TrackedObject> matchTrackedObjects =  trackedObjects.stream().filter(
             obj -> obj.getTime() == (currentTick - frequency)
             ).collect(Collectors.toList());
+
         if (!matchTrackedObjects.isEmpty()) {
             this.lastTrackedObjects = new ArrayList<>(matchTrackedObjects);
+            this.trackedObjects.removeAll(lastTrackedObjects);
+            stats.addTrackedObjects(matchTrackedObjects.size());
             return matchTrackedObjects;
         } else {
             return new ArrayList<>();

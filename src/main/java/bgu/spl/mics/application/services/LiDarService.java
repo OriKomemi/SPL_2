@@ -69,7 +69,7 @@ public class LiDarService extends MicroService {
             liDarWorkerTracker.createTrackedObjects(liDARDataBase.getCloudPoints(), event);
             List<TrackedObject> matchTrackedObjects = liDarWorkerTracker.matchTrackedObjects(currentTick);
             if (liDarWorkerTracker.getStatus() == STATUS.ERROR) {
-                sendBroadcast(new CrashedBroadcast(this.getName(), ""));
+                sendBroadcast(new CrashedBroadcast("LiDarTrackerWorker"+this.liDarWorkerTracker.getId(), ""));
             } else if (!matchTrackedObjects.isEmpty()) {
                 sendEvent(new TrackedObjectsEvent(matchTrackedObjects));
             }

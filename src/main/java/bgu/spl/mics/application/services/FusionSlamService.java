@@ -53,12 +53,6 @@ public class FusionSlamService extends MicroService {
 
         // Subscribe to TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, (TrackedObjectsEvent event) -> {
-
-            if (currentPose == null) {
-                System.out.println(getName() + " - Cannot process tracked objects without a valid pose.");
-                return;
-            }
-
             List<TrackedObject> trackedObjects = event.getTrackedObjects();
             for (TrackedObject obj : trackedObjects) {
                 if (obj.getTime() == currentPose.getTime()){
